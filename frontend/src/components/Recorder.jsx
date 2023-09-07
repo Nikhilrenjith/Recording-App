@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import RecordRTC from "recordrtc";
 import "../CSS/Recorder.css";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import Navbar from "./Navbar";
 
 class RecordPage extends Component {
@@ -10,14 +11,15 @@ class RecordPage extends Component {
     this.state = {
       recordVideo: null,
       screenStream: null,
-      webcamStream: null,
+      webcamStream: null, // Added webcam stream state
       src: null,
-      webcamSrc: null,
       isRecording: false,
     };
 
     this.toggleRecord = this.toggleRecord.bind(this);
     this.stopRecord = this.stopRecord.bind(this);
+    this.downloadVideo = this.downloadVideo.bind(this);
+    this.toggleCamera = this.toggleCamera.bind(this);
   }
 
   async toggleRecord() {
@@ -36,17 +38,15 @@ class RecordPage extends Component {
           isRecording: true,
         });
 
-        // Start recording webcam
+        // Access the user's camera for live feed
         const webcamStream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true,
         });
-        const webcamRecorder = new RecordRTC(webcamStream, { type: "video" });
-        webcamRecorder.startRecording();
-        this.setState({
-          webcamStream,
-          webcamRecorder,
-        });
+        this.setState({ webcamStream });
+
+        // Set the live camera feed as the source for the webcam video element
+        this.webcamVideo.srcObject = webcamStream;
       } catch (error) {
         console.error("Error accessing screen or webcam:", error);
       }
@@ -54,10 +54,28 @@ class RecordPage extends Component {
       this.stopRecord();
     }
   }
+  toggleMute() {
+    const { webcamStream, isMuted } = this.state;
+    const audioTracks = webcamStream.getAudioTracks();
+
+    if (audioTracks.length > 0) {
+      audioTracks[0].enabled = !isMuted;
+      this.setState({ isMuted: !isMuted });
+    }
+  }
+
+  toggleCamera() {
+    const { webcamStream, isCameraOn } = this.state;
+    const videoTracks = webcamStream.getVideoTracks();
+
+    if (videoTracks.length > 0) {
+      videoTracks[0].enabled = !isCameraOn;
+      this.setState({ isCameraOn: !isCameraOn });
+    }
+  }
 
   async stopRecord() {
-    const { recordVideo, screenStream, webcamRecorder, webcamStream } =
-      this.state;
+    const { recordVideo, screenStream, webcamStream } = this.state;
     if (!recordVideo) return;
 
     recordVideo.stopRecording(() => {
@@ -66,20 +84,25 @@ class RecordPage extends Component {
       this.setState({ src: videoSrc, isRecording: false });
 
       screenStream.getTracks().forEach((track) => track.stop());
-    });
-
-    // Stop recording webcam and set webcamSrc
-    webcamRecorder.stopRecording(() => {
-      const webcamBlob = webcamRecorder.getBlob();
-      const webcamVideoSrc = window.URL.createObjectURL(webcamBlob);
-      this.setState({ webcamSrc: webcamVideoSrc });
-
       webcamStream.getTracks().forEach((track) => track.stop());
     });
   }
+  downloadVideo() {
+    const { src } = this.state;
+
+    if (src) {
+      const a = document.createElement("a");
+      a.href = src;
+      a.download = "recorded-video.mp4"; // Set the default filename
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  }
 
   render() {
-    const { src, webcamSrc, isRecording } = this.state;
+    const { src, isRecording } = this.state;
 
     return (
       <div>
@@ -91,19 +114,26 @@ class RecordPage extends Component {
             ) : null}
           </div>
           <div className="video-container2">
-            {webcamSrc ? (
-              <video
-                controls
-                autoPlay
-                src={webcamSrc}
-                className="recorded-video"
-              />
-            ) : null}
+            {/* Live camera feed displayed here */}
+            <video
+              autoPlay
+              playsInline
+              ref={(ref) => (this.webcamVideo = ref)} // Ref for webcam video element
+              className={`webcam-video ${isRecording ? "" : "hidden"}`}
+            ></video>
           </div>
           <div>
             <button className="submit" onClick={this.toggleRecord}>
               {isRecording ? "Stop Recording" : "Start Recording"}
             </button>
+            <div className="save">
+              {src && (
+                <button className="download" onClick={this.downloadVideo}>
+                  <FileDownloadIcon />
+                  <p> Download Video</p>
+                </button>
+              )}{" "}
+            </div>
           </div>
         </div>
       </div>

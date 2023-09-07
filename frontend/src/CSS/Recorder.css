@@ -1,27 +1,85 @@
 /* Recorder.css */
 
+/* Keep the existing styles for .container and .video-container1 */
 .container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
 }
 
-.video-container {
+.video-container1 {
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 10px;
 }
 
-.recorded-video1 {
-  max-width: 100%;
-  max-height: 100%;
+/* Add new styles for .video-container2 */
+.video-container2 {
+  position: absolute;
+  bottom: 60px; /* Adjust the distance from the bottom as needed */
+  right: 50px; /* Adjust the distance from the right as needed */
+  z-index: 9998; /* Ensure the video appears above other content */
+}
+
+/* Style for the live camera feed video */
+.webcam-video {
+  max-width: 250px; /* Set the maximum width of the video */
   border: 1px solid #ccc;
+  margin-top: 20px;
+  display: block; /* Display the video element */
+  border-radius: 15px;
+}
+
+/* Hide the webcam video when not recording */
+.webcam-video.hidden {
+  display: none;
+}
+
+/* Keep the existing styles for .recorded-video and .submit */
+.recorded-video {
+  max-width: 640px;
+  max-height: 360px;
+  border: 1px solid #ccc;
+  margin-top: 20px;
+  display: block;
+  position: relative;
 }
 
 .submit {
-  color: skyblue;
-  color: black;
+  margin: 10px;
+  min-width: 200px;
+  min-height: 30px;
+}
+.button-container {
+  position: absolute;
+  bottom: 10px; /* Adjust the vertical position as needed */
+  left: 10px; /* Adjust the horizontal position as needed */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mute-button,
+.camera-button {
+  margin-bottom: 5px; /* Adjust the spacing between the buttons */
+  padding: 5px 10px;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+/* Style for the buttons when hovered */
+.mute-button:hover,
+.camera-button:hover {
+  background-color: #555;
+}
+.download {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
 }
